@@ -1,0 +1,71 @@
+//FCFS (First Come First Serve)//
+#include <stdio.h>
+#include <stdlib.h>
+
+int findTotalHeadMovementsFCFS(int requests[], int n, int currentPosition) {
+    int totalHeadMovements = abs(requests[0] - currentPosition);
+
+    for (int i = 1; i < n; i++) {
+        totalHeadMovements += abs(requests[i] - requests[i - 1]);
+    }
+
+    return totalHeadMovements;
+}
+
+int main() {
+    int requests[] = {98, 183, 37, 122, 14, 124, 65, 67};
+    int n = sizeof(requests) / sizeof(requests[0]);
+    int currentPosition = 53;
+
+    printf("Total head movements using FCFS: %d\n", findTotalHeadMovementsFCFS(requests, n, currentPosition));
+
+    return 0;
+}
+
+//SSTF (Shortest Seek Time First)//
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+int findMinDistance(int requests[], int n, int currentPosition, bool visited[]) {
+    int minDistance = INT_MAX;
+    int minIndex;
+
+    for (int i = 0; i < n; i++) {
+        if (!visited[i] && abs(requests[i] - currentPosition) < minDistance) {
+            minIndex = i;
+            minDistance = abs(requests[i] - currentPosition);
+        }
+    }
+
+    return minIndex;
+}
+
+int findTotalHeadMovementsSSTF(int requests[], int n, int currentPosition) {
+    bool visited[n];
+    for (int i = 0; i < n; i++) {
+        visited[i] = false;
+    }
+
+    int totalHeadMovements = 0;
+    int current = currentPosition;
+
+    for (int i = 0; i < n; i++) {
+        int nextIndex = findMinDistance(requests, n, current, visited);
+        totalHeadMovements += abs(requests[nextIndex] - current);
+        visited[nextIndex] = true;
+        current = requests[nextIndex];
+    }
+
+    return totalHeadMovements;
+}
+
+int main() {
+    int requests[] = {98, 183, 37, 122, 14, 124, 65, 67};
+    int n = sizeof(requests) / sizeof(requests[0]);
+    int currentPosition = 53;
+
+    printf("Total head movements using SSTF: %d\n", findTotalHeadMovementsSSTF(requests, n, currentPosition));
+
+    return 0;
+}
