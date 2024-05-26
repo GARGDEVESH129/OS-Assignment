@@ -1,0 +1,103 @@
+//Scan//
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 1000
+
+int compare(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
+int findTotalHeadMovementsSCAN(int requests[], int n, int currentPosition) {
+    int totalHeadMovements = 0;
+    qsort(requests, n, sizeof(int), compare);
+
+    int leftHeadMovements = 0;
+    int rightHeadMovements = 0;
+
+    // Find the position of the head in the sorted requests
+    int i;
+    for (i = 0; i < n; i++) {
+        if (requests[i] >= currentPosition) {
+            break;
+        }
+    }
+
+    // Go left
+    for (int j = i - 1; j >= 0; j--) {
+        leftHeadMovements += abs(requests[j] - currentPosition);
+        currentPosition = requests[j];
+    }
+
+    // Go right
+    for (int j = i; j < n; j++) {
+        rightHeadMovements += abs(requests[j] - currentPosition);
+        currentPosition = requests[j];
+    }
+
+    totalHeadMovements = leftHeadMovements + rightHeadMovements;
+
+    return totalHeadMovements;
+}
+
+int main() {
+    int requests[] = {98, 183, 37, 122, 14, 124, 65, 67};
+    int n = sizeof(requests) / sizeof(requests[0]);
+    int currentPosition = 53;
+
+    printf("Total head movements using SCAN: %d\n", findTotalHeadMovementsSCAN(requests, n, currentPosition));
+
+    return 0;
+}
+
+//C-Scan//
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 1000
+
+int compare(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
+int findTotalHeadMovementsCSCAN(int requests[], int n, int currentPosition) {
+    int totalHeadMovements = 0;
+    qsort(requests, n, sizeof(int), compare);
+
+    int leftHeadMovements = 0;
+    int rightHeadMovements = 0;
+
+    // Find the position of the head in the sorted requests
+    int i;
+    for (i = 0; i < n; i++) {
+        if (requests[i] >= currentPosition) {
+            break;
+        }
+    }
+
+    // Go right
+    for (int j = i; j < n; j++) {
+        rightHeadMovements += abs(requests[j] - currentPosition);
+        currentPosition = requests[j];
+    }
+
+    // Wrap around to the beginning
+    for (int j = 0; j < i; j++) {
+        leftHeadMovements += abs(requests[j] - currentPosition);
+        currentPosition = requests[j];
+    }
+
+    totalHeadMovements = leftHeadMovements + rightHeadMovements;
+
+    return totalHeadMovements;
+}
+
+int main() {
+    int requests[] = {98, 183, 37, 122, 14, 124, 65, 67};
+    int n = sizeof(requests) / sizeof(requests[0]);
+    int currentPosition = 53;
+
+    printf("Total head movements using C-SCAN: %d\n", findTotalHeadMovementsCSCAN(requests, n, currentPosition));
+
+    return 0;
+}
