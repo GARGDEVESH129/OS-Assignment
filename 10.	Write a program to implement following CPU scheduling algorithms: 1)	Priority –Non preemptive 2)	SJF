@@ -1,0 +1,148 @@
+//Priority Scheduling - Non-preemptive//
+#include <stdio.h>
+
+struct Process {
+    int pid;           // Process ID
+    int burst_time;    // Burst Time
+    int priority;      // Priority (lower value means higher priority)
+    int waiting_time;  // Waiting Time
+    int turnaround_time; // Turnaround Time
+    int arrival_time;  // Arrival Time
+};
+
+void findWaitingTimePriorityNonPreemptive(struct Process proc[], int n) {
+    int completed = 0;
+    int t = 0;
+    int shortest = -1;
+    int min_priority = __INT_MAX__;
+    int check = 0;
+
+    for (int i = 0; i < n; i++) {
+        proc[i].waiting_time = 0;
+    }
+
+    while (completed != n) {
+        for (int j = 0; j < n; j++) {
+            if ((proc[j].arrival_time <= t) && (proc[j].priority < min_priority) && (proc[j].waiting_time == 0)) {
+                min_priority = proc[j].priority;
+                shortest = j;
+                check = 1;
+            }
+        }
+
+        if (check == 0) {
+            t++;
+            continue;
+        }
+
+        t += proc[shortest].burst_time;
+        proc[shortest].waiting_time = t - proc[shortest].burst_time - proc[shortest].arrival_time;
+
+        if (proc[shortest].waiting_time < 0)
+            proc[shortest].waiting_time = 0;
+
+        min_priority = __INT_MAX__;
+        completed++;
+        check = 0;
+    }
+}
+
+void findTurnaroundTime(struct Process proc[], int n) {
+    // Calculate turnaround time for each process
+    for (int i = 0; i < n; i++) {
+        proc[i].turnaround_time = proc[i].burst_time + proc[i].waiting_time;
+    }
+}
+
+void findAvgTimePriorityNonPreemptive(struct Process proc[], int n) {
+    findWaitingTimePriorityNonPreemptive(proc, n);
+    findTurnaroundTime(proc, n);
+
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    printf("Processes   Burst Time   Priority   Waiting Time   Turnaround Time\n");
+
+    // Calculate total waiting and turnaround time
+    for (int i = 0; i < n; i++) {
+        total_waiting_time += proc[i].waiting_time;
+        total_turnaround_time += proc[i].turnaround_time;
+        printf(" %d\t\t%d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].burst_time, proc[i].priority, proc[i].waiting_time, proc[i].turnaround_time);
+    }
+
+    printf("Average waiting time = %.2f\n", (float)total_waiting_time / n);
+    printf("Average turnaround time = %.2f\n", (float)total_turnaround_time / n);
+}
+
+int main() {
+    struct Process proc[] = {{1, 10, 1, 0, 0, 0}, {2, 5, 3, 0, 0, 1}, {3, 8, 2, 0, 0, 2}, {4, 6, 4, 0, 0, 3}};
+    int n = sizeof(proc) / sizeof(proc[0]);
+
+    findAvgTimePriorityNonPreemptive(proc, n);
+
+    return 0;
+}
+
+//Shortest Job First (SJF)//
+#include <stdio.h>
+
+struct Process {
+    int pid;        // Process ID
+    int burst_time; // Burst Time
+    int waiting_time; // Waiting Time
+    int turnaround_time; // Turnaround Time
+};
+
+void findWaitingTimeSJF(struct Process proc[], int n) {
+    int completed = 0, t = 0, min_burst = __INT_MAX__, shortest = 0;
+    int finished[100] = {0}; // Array to keep track of finished processes
+    
+    // Calculate waiting time for each process
+    while (completed != n) {
+        for (int j = 0; j < n; j++) {
+            if ((proc[j].burst_time < min_burst) && (finished[j] == 0)) {
+                min_burst = proc[j].burst_time;
+                shortest = j;
+            }
+        }
+
+        t += proc[shortest].burst_time;
+        proc[shortest].waiting_time = t - proc[shortest].burst_time;
+        finished[shortest] = 1;
+        min_burst = __INT_MAX__;
+        completed++;
+    }
+}
+
+void findTurnaroundTimeSJF(struct Process proc[], int n) {
+    // Calculate turnaround time for each process
+    for (int i = 0; i < n; i++) {
+        proc[i].turnaround_time = proc[i].burst_time + proc[i].waiting_time;
+    }
+}
+
+void findAvgTimeSJF(struct Process proc[], int n) {
+    findWaitingTimeSJF(proc, n);
+    findTurnaroundTimeSJF(proc, n);
+
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    printf("Processes   Burst Time   Waiting Time   Turnaround Time\n");
+
+    // Calculate total waiting and turnaround time
+    for (int i = 0; i < n; i++) {
+        total_waiting_time += proc[i].waiting_time;
+        total_turnaround_time += proc[i].turnaround_time;
+        printf(" %d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].burst_time, proc[i].waiting_time, proc[i].turnaround_time);
+    }
+
+    printf("Average waiting time = %.2f\n", (float)total_waiting_time / n);
+    printf("Average turnaround time = %.2f\n", (float)total_turnaround_time / n);
+}
+
+int main() {
+    struct Process proc[] = {{1, 6}, {2, 8}, {3, 7}, {4, 3}};
+    int n = sizeof(proc) / sizeof(proc[0]);
+
+    findAvgTimeSJF(proc, n);
+
+    return 0;
+}
+
