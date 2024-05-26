@@ -1,0 +1,132 @@
+//Reader Writter//
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+sem_t rw_mutex;  // Semaphore for readers-writers exclusion
+pthread_mutex_t mutex;  // Mutex for reader count
+int reader_count = 0;
+int shared_data = 0;
+
+void* reader(void* arg) {
+    for (int i = 0; i < 5; i++) {
+        pthread_mutex_lock(&mutex);
+        reader_count++;
+        if (reader_count == 1) {
+            sem_wait(&rw_mutex);  // First reader locks the resource
+        }
+        pthread_mutex_unlock(&mutex);
+
+        // Read the shared data
+        printf("Reader %ld: read %d\n", (long)arg, shared_data);
+
+        pthread_mutex_lock(&mutex);
+        reader_count--;
+        if (reader_count == 0) {
+            sem_post(&rw_mutex);  // Last reader unlocks the resource
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    return NULL;
+}
+
+void* writer(void* arg) {
+    for (int i = 0; i < 5; i++) {
+        sem_wait(&rw_mutex);  // Writer locks the resource
+
+        // Write to the shared data
+        shared_data++;
+        printf("Writer %ld: wrote %d\n", (long)arg, shared_data);
+
+        sem_post(&rw_mutex);  // Writer unlocks the resource
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[5], writers[5];
+
+    // Initialize semaphore and mutex
+    sem_init(&rw_mutex, 0, 1);
+    pthread_mutex_init(&mutex, NULL);
+
+    // Create reader and writer threads
+    for (long i = 0; i < 5; i++) {
+        pthread_create(&readers[i], NULL, reader, (void*)i);
+        pthread_create(&writers[i], NULL, writer, (void*)i);
+    }
+
+    // Wait for the threads to complete
+    for (int i = 0; i < 5; i++) {
+        pthread_join(readers[i], NULL);
+        pthread_join(writers[i], NULL);
+    }
+
+    // Destroy semaphore and mutex
+    sem_destroy(&rw_mutex);
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
+
+//Dinning Philosophers//
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+#define NUM_PHILOSOPHERS 5
+
+sem_t chopsticks[NUM_PHILOSOPHERS];
+
+void* philosopher(void* num) {
+    int id = *(int*)num;
+
+    for (int i = 0; i < 5; i++) {
+        printf("Philosopher %d is thinking\n", id);
+        sleep(rand() % 3);
+
+        // Pick up chopsticks
+        sem_wait(&chopsticks[id]);  // Pick up left chopstick
+        sem_wait(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]);  // Pick up right chopstick
+
+        // Eat
+        printf("Philosopher %d is eating\n", id);
+        sleep(rand() % 3);
+
+        // Put down chopsticks
+        sem_post(&chopsticks[id]);  // Put down left chopstick
+        sem_post(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]);  // Put down right chopstick
+    }
+
+    return NULL;
+}
+
+int main() {
+    pthread_t philosophers[NUM_PHILOSOPHERS];
+    int ids[NUM_PHILOSOPHERS];
+
+    // Initialize semaphores
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        sem_init(&chopsticks[i], 0, 1);
+        ids[i] = i;
+    }
+
+    // Create philosopher threads
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        pthread_create(&philosophers[i], NULL, philosopher, &ids[i]);
+    }
+
+    // Wait for all philosopher threads to complete
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        pthread_join(philosophers[i], NULL);
+    }
+
+    // Destroy semaphores
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        sem_destroy(&chopsticks[i]);
+    }
+
+    return 0;
+}
