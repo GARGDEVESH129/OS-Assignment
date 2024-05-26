@@ -1,0 +1,132 @@
+//FCFS//
+#include <stdio.h>
+
+struct Process {
+    int pid;        // Process ID
+    int burst_time; // Burst Time
+    int arrival_time; // Arrival Time
+    int waiting_time; // Waiting Time
+    int turnaround_time; // Turnaround Time
+};
+
+void findWaitingTimeFCFS(struct Process proc[], int n) {
+    proc[0].waiting_time = 0; // First process has no waiting time
+
+    // Calculate waiting time for each process
+    for (int i = 1; i < n; i++) {
+        proc[i].waiting_time = proc[i - 1].burst_time + proc[i - 1].waiting_time;
+    }
+}
+
+void findTurnaroundTimeFCFS(struct Process proc[], int n) {
+    // Calculate turnaround time for each process
+    for (int i = 0; i < n; i++) {
+        proc[i].turnaround_time = proc[i].burst_time + proc[i].waiting_time;
+    }
+}
+
+void findAvgTimeFCFS(struct Process proc[], int n) {
+    findWaitingTimeFCFS(proc, n);
+    findTurnaroundTimeFCFS(proc, n);
+
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    printf("Processes   Burst Time   Waiting Time   Turnaround Time\n");
+
+    // Calculate total waiting and turnaround time
+    for (int i = 0; i < n; i++) {
+        total_waiting_time += proc[i].waiting_time;
+        total_turnaround_time += proc[i].turnaround_time;
+        printf(" %d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].burst_time, proc[i].waiting_time, proc[i].turnaround_time);
+    }
+
+    printf("Average waiting time = %.2f\n", (float)total_waiting_time / n);
+    printf("Average turnaround time = %.2f\n", (float)total_turnaround_time / n);
+}
+
+int main() {
+    struct Process proc[] = {{1, 10}, {2, 5}, {3, 8}};
+    int n = sizeof(proc) / sizeof(proc[0]);
+
+    findAvgTimeFCFS(proc, n);
+
+    return 0;
+}
+
+//Round Robin//
+#include <stdio.h>
+
+struct Process {
+    int pid;        // Process ID
+    int burst_time; // Burst Time
+    int waiting_time; // Waiting Time
+    int turnaround_time; // Turnaround Time
+    int remaining_time; // Remaining Burst Time
+};
+
+void findWaitingTimeRR(struct Process proc[], int n, int quantum) {
+    int t = 0; // Current time
+
+    // Keep traversing processes in round robin manner until all of them are not done.
+    while (1) {
+        int done = 1;
+
+        for (int i = 0; i < n; i++) {
+            // If burst time of a process is greater than 0 then only need to process further
+            if (proc[i].remaining_time > 0) {
+                done = 0; // There is a pending process
+
+                if (proc[i].remaining_time > quantum) {
+                    t += quantum;
+                    proc[i].remaining_time -= quantum;
+                } else {
+                    t += proc[i].remaining_time;
+                    proc[i].waiting_time = t - proc[i].burst_time;
+                    proc[i].remaining_time = 0;
+                }
+            }
+        }
+
+        // If all processes are done
+        if (done == 1)
+            break;
+    }
+}
+
+void findTurnaroundTimeRR(struct Process proc[], int n) {
+    // Calculate turnaround time for each process
+    for (int i = 0; i < n; i++) {
+        proc[i].turnaround_time = proc[i].burst_time + proc[i].waiting_time;
+    }
+}
+
+void findAvgTimeRR(struct Process proc[], int n, int quantum) {
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+    }
+
+    findWaitingTimeRR(proc, n, quantum);
+    findTurnaroundTimeRR(proc, n);
+
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    printf("Processes   Burst Time   Waiting Time   Turnaround Time\n");
+
+    // Calculate total waiting and turnaround time
+    for (int i = 0; i < n; i++) {
+        total_waiting_time += proc[i].waiting_time;
+        total_turnaround_time += proc[i].turnaround_time;
+        printf(" %d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].burst_time, proc[i].waiting_time, proc[i].turnaround_time);
+    }
+
+    printf("Average waiting time = %.2f\n", (float)total_waiting_time / n);
+    printf("Average turnaround time = %.2f\n", (float)total_turnaround_time / n);
+}
+
+int main() {
+    struct Process proc[] = {{1, 10}, {2, 5}, {3, 8}};
+    int n = sizeof(proc) / sizeof(proc[0]);
+    int quantum = 4;
+
+    findAvgTimeRR(proc, n, quantum);
+
+    return 0;
+}
