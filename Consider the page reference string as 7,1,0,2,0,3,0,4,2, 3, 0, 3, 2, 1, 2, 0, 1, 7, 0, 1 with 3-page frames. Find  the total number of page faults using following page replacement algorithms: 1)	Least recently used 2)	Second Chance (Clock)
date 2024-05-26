@@ -1,0 +1,157 @@
+//Least Recently Used (LRU)//
+#include <stdio.h>
+
+int findPageFaultsLRU(int pages[], int n, int capacity) {
+    int pageFaults = 0;
+    int frame[capacity];
+    int lru[capacity];
+    int time = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        frame[i] = -1;
+        lru[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int j, hit = 0;
+        time++;
+
+        for (j = 0; j < capacity; j++) {
+            if (frame[j] == pages[i]) {
+                hit = 1;
+                lru[j] = time;
+                break;
+            }
+        }
+
+        if (!hit) {
+            int leastRecent = 0;
+            for (j = 1; j < capacity; j++) {
+                if (lru[j] < lru[leastRecent])
+                    leastRecent = j;
+            }
+
+            frame[leastRecent] = pages[i];
+            lru[leastRecent] = time;
+            pageFaults++;
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int pages[] = {7, 1, 0, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int capacity = 3;
+
+    printf("Total page faults using LRU: %d\n", findPageFaultsLRU(pages, n, capacity));
+
+    return 0;
+}
+
+//
+Below are the C programs for the Least Recently Used (LRU) and Second Chance (Clock) page replacement algorithms:
+
+Least Recently Used (LRU)
+c
+Copy code
+#include <stdio.h>
+
+int findPageFaultsLRU(int pages[], int n, int capacity) {
+    int pageFaults = 0;
+    int frame[capacity];
+    int lru[capacity];
+    int time = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        frame[i] = -1;
+        lru[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int j, hit = 0;
+        time++;
+
+        for (j = 0; j < capacity; j++) {
+            if (frame[j] == pages[i]) {
+                hit = 1;
+                lru[j] = time;
+                break;
+            }
+        }
+
+        if (!hit) {
+            int leastRecent = 0;
+            for (j = 1; j < capacity; j++) {
+                if (lru[j] < lru[leastRecent])
+                    leastRecent = j;
+            }
+
+            frame[leastRecent] = pages[i];
+            lru[leastRecent] = time;
+            pageFaults++;
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int pages[] = {7, 1, 0, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int capacity = 3;
+
+    printf("Total page faults using LRU: %d\n", findPageFaultsLRU(pages, n, capacity));
+
+    return 0;
+}
+
+//Second Chance (Clock)//
+#include <stdio.h>
+#include <stdbool.h>
+
+int findPageFaultsClock(int pages[], int n, int capacity) {
+    int pageFaults = 0;
+    bool present[capacity];
+    int referenceBit[capacity];
+    int hand = 0;
+
+    for (int i = 0; i < capacity; i++) {
+        present[i] = false;
+        referenceBit[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        bool hit = false;
+        for (int j = 0; j < capacity; j++) {
+            if (present[j] && pages[i] == referenceBit[j]) {
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            while (present[hand]) {
+                present[hand] = false;
+                hand = (hand + 1) % capacity;
+            }
+            present[hand] = true;
+            referenceBit[hand] = pages[i];
+            hand = (hand + 1) % capacity;
+            pageFaults++;
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    int pages[] = {7, 1, 0, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int capacity = 3;
+
+    printf("Total page faults using Second Chance (Clock): %d\n", findPageFaultsClock(pages, n, capacity));
+
+    return 0;
+}
